@@ -129,7 +129,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+.envpdf312
 # Spyder project settings
 .spyderproject
 .spyproject
