@@ -2,8 +2,23 @@ from cols_datasets import col_order
 
 import os
 import pandas as pd
+from typing import Optional
 
-def remove_cols(column_order,csv_dir)->None:
+
+def normalize_date_format(df, date_column)->pd.DataFrame:
+    # Convertir la colonne en format datetime, avec gestion des formats variés
+    df[date_column] = df[date_column].astype(str)
+    df[date_column] = pd.to_datetime(df[date_column], errors='coerce', 
+                                      exact=False, 
+                                     infer_datetime_format=True)
+
+    # Reformater la date en 'jj/mm/aaaa'
+    df[date_column] = df[date_column].dt.strftime('%d/%m/%Y')
+    
+    return df
+
+
+def remove_cols(column_order,csv_dir)-> Optional[pd.DataFrame]:
     """
      Parcourt un répertoire, lit tous les fichiers CSV avec le bon délimiteur et harmonise leurs colonnes.
     
@@ -60,17 +75,8 @@ def save_combined_dataset(df, output_file):
     except Exception as e:
         print(f"Erreur lors de la sauvegarde : {str(e)}")
 
-def normalize_date_format(df, date_column):
-    # Convertir la colonne en format datetime, avec gestion des formats variés
-    df[date_column] = df[date_column].astype(str)
-    df[date_column] = pd.to_datetime(df[date_column], errors='coerce', 
-                                      exact=False, 
-                                     infer_datetime_format=True)
 
-    # Reformater la date en 'jj/mm/aaaa'
-    df[date_column] = df[date_column].dt.strftime('%d/%m/%Y')
-    
-    return df
+
 # Exemple d'utilisation
 if __name__ == "__main__":
     csv_directory = "raw_datasets"  # Répertoire où se trouvent les fichiers CSV
