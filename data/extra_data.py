@@ -7,6 +7,15 @@ from bs4 import BeautifulSoup
 
 # Fonction pour télécharger un fichier à partir d'un URL
 def download_file(url, output_dir):
+    """Se connecte à une URL et télécharge le fichier dans un répertoire spécifié.
+
+    Args:
+        url (_type_): _description_
+        output_dir (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     local_filename = os.path.join(output_dir, url.split("/")[-1])  # Nom du fichier à partir de l'URL
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
@@ -84,12 +93,12 @@ def cleanup(zip_dir, extract_dir):
         print(f"Suppression du dossier datasets_euromillions {zip_dir}")
         shutil.rmtree(zip_dir)
 
-def Main():
+def extra_data_fdj(name="euromillions-my-million"):
     # URL de la page contenant les datasets
-    url = "https://www.fdj.fr/jeux-de-tirage/euromillions-my-million/historique"
+    url = f"https://www.fdj.fr/jeux-de-tirage/{name}/historique"
 
     # Dossier où les fichiers seront enregistrés
-    output_dir = "datasets_euromillions"
+    output_dir = f"data/datasets_{name}"
 
     # Créer le dossier s'il n'existe pas
     if not os.path.exists(output_dir):
@@ -115,9 +124,9 @@ def Main():
 
     print("Tous les fichiers ont été téléchargés.")
 
-    zip_directory = "datasets_euromillions"  # Dossier contenant les fichiers ZIP téléchargés
-    temp_extract_directory = "temp_extract"   # Dossier temporaire pour l'extraction
-    destination_directory = "raw_datasets"  # Dossier final pour stocker les fichiers extraits
+    zip_directory = f"data/datasets_{name}"  # Dossier contenant les fichiers ZIP téléchargés
+    temp_extract_directory = "data/temp_extract"   # Dossier temporaire pour l'extraction
+    destination_directory = f"data/raw_datasets/{name}"  # Dossier final pour stocker les fichiers extraits
 
     # Dézipper les fichiers
     unzip_files(zip_directory, temp_extract_directory)
@@ -130,4 +139,5 @@ def Main():
 
 # Exemple d'utilisation des fonctions
 if __name__ == "__main__":
-    Main()
+    extra_data_fdj("euromillions-my-million")
+    extra_data_fdj("loto")

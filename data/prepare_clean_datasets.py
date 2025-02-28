@@ -6,6 +6,15 @@ from typing import Optional
 
 
 def normalize_date_format(df, date_column)->pd.DataFrame:
+    """Fonction pour normaliser le format de la colonne de date dans un DataFrame Pandas.
+
+    Args:
+        df (_type_): _description_
+        date_column (_type_): _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
     # Convertir la colonne en format datetime, avec gestion des formats variés
     df[date_column] = df[date_column].astype(str)
     df[date_column] = pd.to_datetime(df[date_column], errors='coerce', 
@@ -18,7 +27,7 @@ def normalize_date_format(df, date_column)->pd.DataFrame:
     return df
 
 
-def remove_cols(column_order,csv_dir)-> Optional[pd.DataFrame]:
+def remove_cols(column_order,csv_dir, dataset)-> Optional[pd.DataFrame]:
     """
      Parcourt un répertoire, lit tous les fichiers CSV avec le bon délimiteur et harmonise leurs colonnes.
     
@@ -27,7 +36,7 @@ def remove_cols(column_order,csv_dir)-> Optional[pd.DataFrame]:
     
     """
     # Création du répertoire de destination
-    dest_dir = "cleaned_datasets"
+    dest_dir = f"data/cleaned_datasets/{dataset}"
     csv_files = []  # Liste pour stocker les DataFrames de chaque fichier CSV
     if not os.path.exists(dest_dir): # s'il n'existe pas, je le crée
         os.makedirs(dest_dir)
@@ -67,25 +76,48 @@ def save_combined_dataset(df, output_file):
     :param output_file: Chemin du fichier CSV de sortie
     """
     try:
-        with open(output_file, 'w', encoding='utf-8', newline='') as file:
-            df.to_csv(file, index=False, sep=';')  # Utiliser ';' comme séparateur
+        final_dir = "data/results"
+        if not os.path.exists(final_dir): 
+            os.makedirs(final_dir)
+        with open(f"{final_dir}/{output_file}", 'w', encoding='utf-8', newline='') as file:
+            df.to_csv(file, index=False, sep=';') 
         print(f"Le fichier {output_file} a été sauvegardé avec succès.")
     except PermissionError:
         print(f"Erreur : Permission refusée pour le fichier {output_file}. Assurez-vous qu'il n'est pas ouvert ailleurs.")
     except Exception as e:
         print(f"Erreur lors de la sauvegarde : {str(e)}")
 
+def prepare_clean_datasets():
+    """fonction qui permet de nettoyer les données des jeux de loterie et de les concaténer dans un seul fichier CSV.
+    Cette fonction utilise les fonctions remove_cols et save_combined_dataset pour nettoyer les données et les sauvegarder dans un fichier CSV.
+    A utilisé quand le script est appelé comme module externe.
+    """
+    dataset_directory = "data/raw_datasets"  # Répertoire où se trouvent les fichiers CSV
+    # lister les répertoires dans le csv_directory
+    for dataset in os.listdir(dataset_directory):
+        csv_directory = f"data/raw_datasets/{dataset}" 
 
+        df = remove_cols(column_order=col_order,csv_dir=csv_directory, dataset=dataset)
+        
+        if df is not None:
+            print("Concaténation terminée. Aperçu du DataFrame harmonisé :")
+            print(df.head())  # Afficher les 5 premières lignes du DataFrame
+            
+            # Sauvegarder le DataFrame concaténé dans un fichier CSV avec le bon délimiteur
+            save_combined_dataset(df, f'combined_cleaned_dataset_{dataset}.csv')
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    csv_directory = "raw_datasets"  # Répertoire où se trouvent les fichiers CSV
-    df = remove_cols(column_order=col_order,csv_dir=csv_directory)
+    liste_dataset = ['euromillions-my-million', 'loto']
+    csv_directory = "data/raw_datasets"  # Répertoire où se trouvent les fichiers CSV
+    for dataset in liste_dataset:
+        csv_directory = f"data/raw_datasets/{dataset}"
+        df = remove_cols(column_order=col_order,csv_dir=csv_directory, dataset=dataset)
     
-    if df is not None:
-        print("Concaténation terminée. Aperçu du DataFrame harmonisé :")
-        print(df.head())  # Afficher les 5 premières lignes du DataFrame
-        
-        # Sauvegarder le DataFrame concaténé dans un fichier CSV avec le bon délimiteur
-        save_combined_dataset(df, 'combined_cleaned_dataset.csv')    
+        if df is not None:
+            print("Concaténation terminée. Aperçu du DataFrame harmonisé :")
+            print(df.head())  # Afficher les 5 premières lignes du DataFrame
+            
+            # Sauvegarder le DataFrame concaténé dans un fichier CSV avec le bon délimiteur
+            save_combined_dataset(df, f'combined_cleaned_dataset_{dataset}.csv')    
         
